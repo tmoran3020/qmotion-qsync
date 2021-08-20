@@ -11,7 +11,7 @@ from .const import DEFAULT_TIMEOUT
 from .const import TCP_PORT
 from .const import BROADCAST_ADDRESS
 from .const import UDP_PORT
-from .exceptions import InputError, ConnectionError, Timeout, UnexpectedDataError
+from .exceptions import InputError, QmotionConnectionError, Timeout, UnexpectedDataError
 
 def int_to_hex(input_int):
     """ Convert integer to hex string"""
@@ -146,7 +146,7 @@ def send_header(socket_tcp):
 
     return data_in_hex
 
-class ShadeGroup(object):
+class ShadeGroup:
     """Class representing a shade group, previously created through the qsync application"""
 
     def __init__(self, channel, name="", code=""):
@@ -154,7 +154,7 @@ class ShadeGroup(object):
         self.name = name
         self.code = code
 
-class Scene(object):
+class Scene:
     """Class representing a shade group, previously createed through the qsync application
     """
 
@@ -162,7 +162,7 @@ class Scene(object):
         self.name = name
         self.command_list = command_list
 
-class ShadeGroupCommand(object):
+class ShadeGroupCommand:
     """Class representing a command for a shade group - which shade and which position
 
     group: ShadeGroup to change position
@@ -175,7 +175,7 @@ class ShadeGroupCommand(object):
         self.percentage = percentage
         self.position_code = position_code
 
-class GroupsAndScenes(object):
+class GroupsAndScenes:
     """Class contains a list of groups and a list of scenes
 
     group_list: List of ShadeGroups
@@ -186,7 +186,7 @@ class GroupsAndScenes(object):
         self.group_list = group_list
         self.scene_list = scene_list
 
-class Qsync(object):
+class Qsync:
     """Class representing an Qsync controller
     """
 
@@ -248,7 +248,7 @@ class Qsync(object):
             error_message = "Could not connect to qysnc host [{host}], port [{tcp_port}]".format(
                 host=self.host, tcp_port=TCP_PORT)
             logging.debug(error_message)
-            raise ConnectionError(error_message)
+            raise QmotionConnectionError(error_message) from socket.error
 
         finally:
             if socket_tcp is not None:
@@ -319,7 +319,7 @@ class Qsync(object):
             error_message = "Could not connect to qysnc host [{host}], port [{tcp_port}]".format(
                 host=self.host, tcp_port=TCP_PORT)
             logging.debug(error_message)
-            raise ConnectionError(error_message)
+            raise QmotionConnectionError(error_message) from socket.error
 
         finally:
             if socket_tcp is not None:
@@ -367,7 +367,7 @@ class Qsync(object):
         except Exception:
             error_message = "Could not connect to qysnc"
             logging.debug(error_message)
-            raise ConnectionError(error_message)
+            raise QmotionConnectionError(error_message) from Exception
 
         finally:
             if socket_udp is not None:
