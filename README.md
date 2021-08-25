@@ -4,7 +4,7 @@ This package controls [Qmotion](https://www.legrand.us/qmotion) shades using a Q
 
 The protocol is reverse engineered by inspecting network packets, with credit to [devbobo](https://github.com/devbobo/qmotion) and [exitexit](https://github.com/exitexit/qsync-control).	
 
-Note that the qsync must be installed and set up using the Qsync application before usage - this package provides no support for creating the groups and scenes involved in control.
+Note that the Qsync must be installed and set up using the Qsync application before usage - this package provides no support for creating the groups and scenes involved in control.
 
 Also note that there is no state in this system - all commands are fire and forget, with no returned data to see if the shade successfully received the command. Therefore, Qsync appears to retry commands multiple times in the hope that shades will (eventually) receive the command. This can make multiple serial commands problematic, see Groups below for more information. If you are having difficulty having shades respond to commands, look into Qsync physical location and possibly introduce Qrelay device(s). In my experience, problematic shades rarely respond better to repeated commands sent over this protocol.
 
@@ -19,9 +19,9 @@ import qmotion_qsync
 qsync = qmotion_qsync.discover_qsync()
 ```
 
-If a qsync device can be found on the network, a full-populated Qsync class will be returned.
+If a Qsync device can be found on the network, a full-populated Qsync class will be returned.
 
-Alternatively, you can not use discovery and define the qsync device manually:
+Alternatively, you can not use discovery and define the Qsync device manually:
 
 ```python
 from qmotion_qsync import Qsync
@@ -33,7 +33,7 @@ Note: While still fully usable for control, this Qsync object will NOT be fully 
 ### Group control
 Qsync uses the concept of shade groups and are configured in the Qsync app. These groups can be a single shade (recommended for fine-grained control) or groups of shades. Note that a single shade can be in multiple groups, so you can have both fine grain control and bulk shade movement using groups effectively. The group -> shade mapping not stored in Qsync, and therefore this module has no knowledge of which shades are in which groups. Instead, shades "listen" for group numbers they are configured to be involved in and react accordingly. Up to eight shade groups can be controlled at the same time.
 
-Repeated commands are problematic - the Qsync device appears to be fairly easily confused, plus commands appear to be repeated by the Qsync device and take a while to act upon. Therefore, I don't recommend individual controls of groups - it is better to use on command with a number of groups all at same time. That is, better to issue one request for eight comamnds than call this module eight times with individual commands.
+Repeated commands are problematic - the Qsync device appears to be fairly easily confused, plus commands appear to be repeated by the Qsync device and take a while to act upon. Therefore, I don't recommend individual controls of groups - it is better to use one command with a number of groups all at same time. That is, better to issue one request for eight commands than call this module eight times with individual commands.
 
 ```python
 from qmotion_qsync import Qsync, ShadeGroup, ShadeGroupCommand
