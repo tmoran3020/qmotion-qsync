@@ -6,7 +6,9 @@ From [exitexit](https://github.com/exitexit/qsync-control/blob/master/qsync_cont
 ## Get Scenes And Groups
 
 ### Request
+```
 1600
+```
 
 ### Response
 
