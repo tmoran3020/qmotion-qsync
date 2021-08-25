@@ -13,6 +13,55 @@ from .const import BROADCAST_ADDRESS
 from .const import UDP_PORT
 from .exceptions import InputError, QmotionConnectionError, Timeout, UnexpectedDataError
 
+def discover_qsync(socket_timeout = DEFAULT_TIMEOUT):
+    """
+    Search for Qsync device on the local network.
+
+    Note: uses UDP
+
+    Returns Qsync object populatd with groups and scenes associated with this qsync device
+    """
+    # Single 00 byte
+    message = bytes(1)
+    address = (BROADCAST_ADDRESS, UDP_PORT)
+
+    socket_udp = None
+    try:
+        socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        socket_udp.settimeout(socket_timeout)
+        socket_udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        socket_udp.sendto(message, address)
+
+        (data, (host, _port)) = socket_udp.recvfrom(1024)
+        data_in_hex = bytes_to_hex(data)
+        name_in_hex = data_in_hex[:30]
+        name = bytes.fromhex(name_in_hex).decode().rstrip('\x00').strip()
+
+        mac_address = data_in_hex[32:44]
+        logging.debug('Qsync: found qsync at [%s], name [%s], mac [%s]', host, name,
+                      mac_address)
+
+        retval = Qsync(host)
+
+        retval.name = name
+        retval.mac_address = mac_address
+
+        groups_scenes = retval.get_groups_and_scenes()
+
+        retval.group_list = groups_scenes.group_list
+        retval.scene_list = groups_scenes.scene_list
+
+        return retval
+
+    except Exception:
+        error_message = "Could not connect to qysnc"
+        logging.debug(error_message)
+        raise QmotionConnectionError(error_message) from Exception
+
+    finally:
+        if socket_udp is not None:
+            socket_udp.close()
+
 def int_to_hex(input_int):
     """ Convert integer to hex string"""
     return '{:02x}'.format(input_int)
@@ -190,8 +239,7 @@ class Qsync:
     """Class representing an Qsync controller
     """
 
-    def __init__(self, host="", socket_timeout=DEFAULT_TIMEOUT):
-        # For initial discovery host not needed
+    def __init__(self, host, socket_timeout=DEFAULT_TIMEOUT):
         self.host = host
         self.socket_timeout = socket_timeout
         self.group_list = []
@@ -325,50 +373,4 @@ class Qsync:
             if socket_tcp is not None:
                 socket_tcp.close()
 
-    def discover_qsync(self):
-        """
-        Search for Qsync device on the local network.
-
-        Note: uses UDP
-
-        Returns Qsync object populatd with groups and scenes associated with this qsync device
-        """
-        # Single 00 byte
-        message = bytes(1)
-        address = (BROADCAST_ADDRESS, UDP_PORT)
-
-        socket_udp = None
-        try:
-            socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            socket_udp.settimeout(self.socket_timeout)
-            socket_udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            socket_udp.sendto(message, address)
-
-            (data, (host, _port)) = socket_udp.recvfrom(1024)
-            data_in_hex = bytes_to_hex(data)
-            name_in_hex = data_in_hex[:30]
-            name = bytes.fromhex(name_in_hex).decode().rstrip('\x00').strip()
-
-            mac_address = data_in_hex[32:44]
-            logging.debug('Qsync: found qsync at [%s], name [%s], mac [%s]', host, name,
-                          mac_address)
-
-            self.host = host
-            self.name = name
-            self.mac_address = mac_address
-
-            groups_scenes = self.get_groups_and_scenes()
-
-            self.group_list = groups_scenes.group_list
-            self.scene_list = groups_scenes.scene_list
-
-            return self
-
-        except Exception:
-            error_message = "Could not connect to qysnc"
-            logging.debug(error_message)
-            raise QmotionConnectionError(error_message) from Exception
-
-        finally:
-            if socket_udp is not None:
-                socket_udp.close()
+    
