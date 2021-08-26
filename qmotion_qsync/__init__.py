@@ -1,5 +1,5 @@
 """Module for controlling Qmotion blinds through a Qsync controller."""
-__version__ = "0.0.0.1"
+__version__ = "1.0.0"
 
 import socket
 from socket import timeout
