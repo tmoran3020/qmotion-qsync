@@ -227,8 +227,8 @@ class ShadeGroupCommand:
 class GroupsAndScenes:
     """Class contains a list of groups and a list of scenes
 
-    group_list: List of ShadeGroups
-    scene_list: List of Scenes
+    group_list: List of ShadeGroup
+    scene_list: List of Scene
     """
 
     def __init__(self, group_list, scene_list):
@@ -237,6 +237,11 @@ class GroupsAndScenes:
 
 class Qsync:
     """Class representing an Qsync controller
+
+    host: hostname or ip address
+    socket_timeout: optional socket timeout that will overwrite default
+    group_list: list of ShadeGroup objects (only in fully populated Qsync object)
+    scene_list: list of Scene objects (only in fully populated Qsync object)
     """
 
     def __init__(self, host, socket_timeout=DEFAULT_TIMEOUT):
