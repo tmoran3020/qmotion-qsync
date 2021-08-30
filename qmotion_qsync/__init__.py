@@ -1,5 +1,5 @@
 """Module for controlling Qmotion blinds through a Qsync controller."""
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 import socket
 from socket import timeout
@@ -108,19 +108,17 @@ def parse_group(data_in_hex):
     code = data_in_hex[48:52]
     channel_in_hex = data_in_hex[6:8]
     channel = int(channel_in_hex, 16)
-    # No particular point to this data, neglecting
-    # mac_address = data_in_hex[22:34]
+    mac_address = data_in_hex[22:34]
     logging.debug('Qsync: Group name [%s], channel [%d], code [%s]', name, channel, code)
 
-    return ShadeGroup(channel, name, code)
+    return ShadeGroup(channel=channel, name=name, code=code, mac_address=mac_address)
 
 def parse_scene(data_in_hex):
     """Parse a scene entity from the group list returned by Qsync"""
     name_in_hex = data_in_hex[82:]
     name = bytes.fromhex(name_in_hex).decode().rstrip('\x00')
     groups_in_hex = data_in_hex[6:54]
-    # No particular point to this data, neglecting
-    # mac_address = data_in_hex[54:66]
+    mac_address = data_in_hex[54:66]
 
     logging.debug('Qsync: Scene name [%s]', name)
 
@@ -138,7 +136,7 @@ def parse_scene(data_in_hex):
 
         command_list.append(command)
 
-    return Scene(name=name, command_list=command_list)
+    return Scene(name=name, command_list=command_list, mac_address=mac_address)
 
 def build_group_dict(groups):
     """Build a dict of groups, code -> group."""
@@ -198,18 +196,20 @@ def send_header(socket_tcp):
 class ShadeGroup:
     """Class representing a shade group, previously created through the qsync application"""
 
-    def __init__(self, channel, name="", code=""):
+    def __init__(self, channel, name="", code="", mac_address=""):
         self.channel = channel
         self.name = name
         self.code = code
+        self.mac_address = mac_address
 
 class Scene:
     """Class representing a shade group, previously createed through the qsync application
     """
 
-    def __init__(self, name, command_list):
+    def __init__(self, name, command_list, mac_address=""):
         self.name = name
         self.command_list = command_list
+        self.mac_address = mac_address
 
 class ShadeGroupCommand:
     """Class representing a command for a shade group - which shade and which position
@@ -223,17 +223,6 @@ class ShadeGroupCommand:
         self.group = group
         self.percentage = percentage
         self.position_code = position_code
-
-class GroupsAndScenes:
-    """Class contains a list of groups and a list of scenes
-
-    group_list: List of ShadeGroup
-    scene_list: List of Scene
-    """
-
-    def __init__(self, group_list, scene_list):
-        self.group_list = group_list
-        self.scene_list = scene_list
 
 class Qsync:
     """Class representing an Qsync controller
@@ -319,9 +308,8 @@ class Qsync:
 
     def get_groups_and_scenes(self):
         """
-        Get the list of groups and scenes defined within the qsync device.
+        Get the list of groups and scenes defined within the qsync device and set into qsync.
 
-        Returns a GroupsAndScenes object that hold all groups and scenes stord on this qsync.
         """
         socket_tcp = None
         try:
@@ -357,16 +345,25 @@ class Qsync:
                 logging.debug('Qsync: receive [%s]', data_in_hex)
 
                 if is_group(data_in_hex):
-                    groups.append(parse_group(data_in_hex))
+                    group = parse_group(data_in_hex)
+                    groups.append(group)
+                    if not self.mac_address:
+                        # The mac address is really of the qsync, set it as a convenience
+                        self.mac_address = group.mac_address
 
                 if is_scene(data_in_hex):
-                    scenes.append(parse_scene(data_in_hex))
+                    scene = parse_scene(data_in_hex)
+                    scenes.append(scene)
+                    if not self.mac_address:
+                        # The mac address is really of the qsync, set it as a convenience
+                        self.mac_address = scene.mac_address
 
             group_dict = build_group_dict(groups)
             for scene in scenes:
                 hydrate_scene(scene=scene, groups=group_dict)
 
-            return GroupsAndScenes(groups, scenes)
+            self.group_list = groups
+            self.scene_list = scenes
 
         except socket.error:
             error_message = "Could not connect to qysnc host [{host}], port [{tcp_port}]".format(
