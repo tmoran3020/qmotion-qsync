@@ -26,7 +26,7 @@ class Position(Enum):
         self.command_code = command_code
 
     @staticmethod
-    def get_position(position):
+    def get_position(position:int):
         """
         Get a Position enum closest to the desired position.
 
@@ -43,7 +43,7 @@ class Position(Enum):
         return Position.POSITION_100
 
     @staticmethod
-    def get_position_code(position_code):
+    def get_position_code(position_code:str):
         """
         Get a Position enum from internal position code.
 
