@@ -1,5 +1,5 @@
 """Module for controlling Qmotion blinds through a Qsync controller."""
-__version__ = "0.0.3"
+__version__ = "0.1.0"
 
 import socket
 from socket import timeout
@@ -46,7 +46,7 @@ def discover_qsync(socket_timeout = DEFAULT_TIMEOUT):
         retval.name = name
         retval.mac_address = mac_address
 
-        retval.get_groups_and_scenes()
+        retval.set_groups_and_scenes()
 
         return retval
 
@@ -230,7 +230,7 @@ class Qsync:
     scene_list: list of Scene objects (only in fully populated Qsync object)
     """
 
-    def __init__(self, host, socket_timeout=DEFAULT_TIMEOUT):
+    def __init__(self, host, socket_timeout=DEFAULT_TIMEOUT,set_groups_and_scenes=False):
         self.host = host
         self.socket_timeout = socket_timeout
         self.group_list = []
@@ -238,6 +238,9 @@ class Qsync:
         # Will be defined during discovery, not used otherwise
         self.name = ""
         self.mac_address = ""
+
+        if set_groups_and_scenes:
+            self.set_groups_and_scenes()
 
     def set_group_position(self, group_command):
         """Set position of a list of shade groups.
@@ -299,11 +302,14 @@ class Qsync:
 
         name: Plain language name of the scene to set.
         """
-        for scene in self.get_groups_and_scenes().scene_list:
+        if not self.scene_list:
+            self.set_groups_and_scenes
+
+        for scene in self.scene_list:
             if name == scene.name:
                 self.set_group_position(scene.command_list)
 
-    def get_groups_and_scenes(self):
+    def set_groups_and_scenes(self):
         """
         Get the list of groups and scenes defined within the qsync device and set into qsync.
 
