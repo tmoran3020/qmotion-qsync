@@ -1,5 +1,5 @@
 """Module for controlling Qmotion blinds through a Qsync controller."""
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 
 import socket
 from socket import timeout
@@ -46,10 +46,7 @@ def discover_qsync(socket_timeout = DEFAULT_TIMEOUT):
         retval.name = name
         retval.mac_address = mac_address
 
-        groups_scenes = retval.get_groups_and_scenes()
-
-        retval.group_list = groups_scenes.group_list
-        retval.scene_list = groups_scenes.scene_list
+        retval.get_groups_and_scenes()
 
         return retval
 
