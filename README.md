@@ -26,10 +26,9 @@ Alternatively, you can not use discovery and define the Qsync device manually:
 ```python
 from qmotion_qsync import Qsync
 
-qsync = Qsync("192.168.1.2")
-qsync.get_groups_and_scenes()
+qsync = Qsync("192.168.1.2", set_groups_and_scenes=True)
 ```
-Note that getting the groups and scenes will do a network call to the Qsync bridge. This is an optional step that sets those sub-objects into the Qsync object. For control of groups and scenes you do not need to do the `get_groups_and_scenes` call, assuming you already know your channel number or scene name.
+Note that setting the groups and scenes will do a network call to the Qsync bridge. This is an optional step that sets those sub-objects into the Qsync object. For control of groups and scenes you do not need to do the `set_groups_and_scenes` call, assuming you already know your channel number or scene name.
 
 ### Group control
 Qsync uses the concept of shade groups and are configured in the Qsync app. These groups can be a single shade (recommended for fine-grained control) or groups of shades. Note that a single shade can be in multiple groups, so you can have both fine grain control and bulk shade movement using groups effectively. The group -> shade mapping not stored in Qsync, and therefore this module has no knowledge of which shades are in which groups. Instead, shades "listen" for group numbers they are configured to be involved in and react accordingly. Up to eight shade groups can be controlled at the same time.
