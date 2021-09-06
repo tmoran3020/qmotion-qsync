@@ -225,7 +225,7 @@ def discover_qsync(socket_timeout:int = DEFAULT_TIMEOUT) -> Qsync:
         (data, (host, _port)) = socket_udp.recvfrom(1024)
         data_in_hex = bytes_to_hex(data)
         name_in_hex = data_in_hex[:30]
-        name = bytes.fromhex(name_in_hex).decode().rstrip('\x00').strip()
+        name = bytes.fromhex(name_in_hex).decode("ascii").rstrip('\x00').strip()
 
         mac_address = data_in_hex[32:44]
         logging.debug('Qsync: found qsync at [%s], name [%s], mac [%s]', host, name,
@@ -291,7 +291,7 @@ def is_scene(data_in_hex:str) -> bool:
 def parse_group(data_in_hex:str) -> ShadeGroup:
     """Parse a group entity from the group list returned by Qsync"""
     name_in_hex = data_in_hex[52:]
-    name = bytes.fromhex(name_in_hex).decode().rstrip('\x00')
+    name = bytes.fromhex(name_in_hex).decode("ascii").rstrip('\x00')
     code = data_in_hex[48:52]
     channel_in_hex = data_in_hex[6:8]
     channel = int(channel_in_hex, 16)
@@ -303,7 +303,7 @@ def parse_group(data_in_hex:str) -> ShadeGroup:
 def parse_scene(data_in_hex:str) -> Scene:
     """Parse a scene entity from the group list returned by Qsync"""
     name_in_hex = data_in_hex[82:]
-    name = bytes.fromhex(name_in_hex).decode().rstrip('\x00')
+    name = bytes.fromhex(name_in_hex).decode("ascii").rstrip('\x00')
     groups_in_hex = data_in_hex[6:54]
     mac_address = data_in_hex[54:66]
 
